@@ -5,7 +5,7 @@ routes.get('/Obtner_todos_los_datos', (req, res)=>{
     req.getConnection((err, conn)=>{
         if(err) return res.send(err)
 
-        conn.query('SELECT * FROM `brecxjllpsqno3f5pnxe`.`COMPROBANTES`', (err, rows)=>{
+        conn.query('SELECT * FROM `COMPROBANTES`', (err, rows)=>{
             if(err) return res.send(err)
 
             res.json(rows)
@@ -120,4 +120,16 @@ routes.put('/actualizar', (req, res)=>{
         })
     })
 })
+routes.get('/BuscarCom', (req, res) => {
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send(err);
+        const id=req.query.id;
+        conn.query('CALL sp_BuscarComp(?)', [id], (err,results) => {
+            if (err) return res.status(500).send(err);
+
+            res.json(results[0]);
+        });
+    });
+});
+
 module.exports = routes
