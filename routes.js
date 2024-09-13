@@ -1,17 +1,20 @@
 const express = require('express')
 const routes = express.Router()
 
-routes.get('/Obtner_todos_los_datos', (req, res)=>{
+routes.get('/Obtener_todos_los_datos', (req, res)=>{
     req.getConnection((err, conn)=>{
-        if(err) return res.send(err)
+        if (err) return res.status(500).send(err);
 
-        conn.query('SELECT * FROM `COMPROBANTES`', (err, rows)=>{
-            if(err) return res.send(err)
+        conn.query('CALL sp_ListarEmpresa()', (err, results)=>{
+            if (err) return res.status(500).send(err);
 
-            res.json(rows)
+        
+            res.json(results[0]); 
+                
         })
     })
 })
+/* 
 routes.get('/GetCom', (req, res) => {
     req.getConnection((err, conn) => {
         if (err) return res.status(500).send(err);
@@ -40,34 +43,29 @@ routes.get('/FiltrarPorRuc', (req, res) => {
         });
     });
 });
+*/
 
-
-routes.post('/insertarCom', (req, res) => {
+routes.post('/insertarEmpr', (req, res) => {
     req.getConnection((err, conn) => {
         if (err) return res.status(500).send(err);
 
         const {
-            FECHA,
-            NUMERODOCUMENTO,
+            EMPRESAS,
+            DESCRIPCION,
+            DIRECCION,
             RUC,
-            RAZONSOCIAL,
-            CONCEPTO,
-            MONEDA,
-            IMPORTE,
-            TIPODOCUMENTO,
-            EMITIDORECIBIDO
+            FUENTE,
+            
         } = req.body;
 
-        conn.query('CALL sp_insertarComp(?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-            FECHA,
-            NUMERODOCUMENTO,
+        conn.query('CALL sp_InsertEmp(?, ?, ?, ?, ?)', [
+            EMPRESAS,
+            DESCRIPCION,
+            DIRECCION,
             RUC,
-            RAZONSOCIAL,
-            CONCEPTO,
-            MONEDA,
-            IMPORTE,
-            TIPODOCUMENTO,
-            EMITIDORECIBIDO
+            FUENTE
+            
+            
         ], (err, results) => {
             if (err) return res.status(500).send(err);
 
@@ -75,44 +73,38 @@ routes.post('/insertarCom', (req, res) => {
         });
     });
 });
-routes.delete('/eliminarCom', (req, res)=>{
+
+routes.delete('/eliminarEmpresa', (req, res)=>{
     req.getConnection((err, conn)=>{
         if(err) return res.send(err)
             const id=req.query.id;
 
-        conn.query('CALL sp_EliminarComp(?)', [id], (err, rows)=>{
+        conn.query('CALL sp_ElimEmpr(?)', [id], (err, rows)=>{
             if(err) return res.send(err)
 
             res.send('Comprobante Eliminado!')
         })
     })
 })
+ 
 routes.put('/actualizar', (req, res)=>{
     req.getConnection((err, conn)=>{
         if(err) return res.send(err)
             const id=req.query.id;
             const {
-                FECHA,
-                NUMERODOCUMENTO,
+                EMPRESAS,
+                DESCRIPCION,
+                DIRECCION,
                 RUC,
-                RAZONSOCIAL,
-                CONCEPTO,
-                MONEDA,
-                IMPORTE,
-                TIPODOCUMENTO,
-                EMITIDORECIBIDO
+                FUENTE,
             } = req.body;
-        conn.query('CALL sp_ActualizarComp(?,?,?,?,?,?,?,?,?,?)', [
+        conn.query('CALL sp_ActaEmp(?,?,?,?,?,?)', [
                 id,
-                FECHA,
-                NUMERODOCUMENTO,
+                EMPRESAS,
+                DESCRIPCION,
+                DIRECCION,
                 RUC,
-                RAZONSOCIAL,
-                CONCEPTO,
-                MONEDA,
-                IMPORTE,
-                TIPODOCUMENTO,
-                EMITIDORECIBIDO
+                FUENTE
             ], (err, rows)=>{
             if(err) return res.send(err)
 
@@ -120,16 +112,17 @@ routes.put('/actualizar', (req, res)=>{
         })
     })
 })
-routes.get('/BuscarCom', (req, res) => {
+
+routes.get('/BuscarEmp', (req, res) => {
     req.getConnection((err, conn) => {
         if (err) return res.status(500).send(err);
         const id=req.query.id;
-        conn.query('CALL sp_BuscarComp(?)', [id], (err,results) => {
+        conn.query('CALL sp_BuscarEmpr(?)', [id], (err,results) => {
             if (err) return res.status(500).send(err);
 
             res.json(results[0]);
-        });
-    });
-});
+        })
+    })
+})
 
 module.exports = routes
