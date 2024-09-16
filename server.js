@@ -3,17 +3,16 @@ const mysql = require('mysql2');
 const myconn = require('express-myconnection');
 const cors = require('cors'); // Importa el paquete cors
 const routes = require('./routes');
-require('dotenv').config();
 const app = express();
 
-app.set('port', process.env.PORT || 9000);
+app.set('port', 3306|| 9000);
 
 const dbOptions = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME   
+    host: plocalhost,
+    port: 3306,
+    user: 'root',
+    password: '',
+    database: 'bdempresas' 
 };
 
 // Usa el middleware cors antes de tus rutas
