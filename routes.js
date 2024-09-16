@@ -1,19 +1,47 @@
 const express = require('express')
+const jwt=require("jsonwebtoken")
 const routes = express.Router()
 
-routes.get('/Obtener_todos_los_datos', (req, res)=>{
-    req.getConnection((err, conn)=>{
-        if (err) return res.status(500).send(err);
 
-        conn.query('CALL sp_ListarEmpresa()', (err, results)=>{
-            if (err) return res.status(500).send(err);
-
-        
-            res.json(results[0]); 
-                
+routes.post("/login",(req, res)=>{
+    const user={
+        id:1,
+        nombre:"admin",
+        email:"admin@gmail.com"
+    }
+    jwt.sign({user:user},'secretkey',(err,token)=>{
+        res.json({
+            token
         })
     })
 })
+//Authorization: Bearer <token>
+function verefi(req,res,next){
+   const veris= req.headers['authorization']
+    if(typeof veris !=='undefined') {
+       const veri= veris.split(" ")[1]
+       req.token=veri
+       next()
+    }else{
+        res.sendStatus(403)
+    }
+}
+routes.get('/Obtener_todos_los_datos', verefi, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (error, authData) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
+        req.getConnection((err, conn) => {
+            if (err) return res.status(500).send(err);
+
+            conn.query('CALL sp_ListarEmpresa()', (err, results) => {
+                if (err) return res.status(500).send(err);
+
+                res.json(results[0]);
+            });
+        });
+    });
+});
 /* 
 routes.get('/GetCom', (req, res) => {
     req.getConnection((err, conn) => {
@@ -45,52 +73,15 @@ routes.get('/FiltrarPorRuc', (req, res) => {
 });
 */
 
-routes.post('/insertarEmpr', (req, res) => {
-    req.getConnection((err, conn) => {
-        if (err) return res.status(500).send(err);
+routes.post('/insertarEmpr', verefi, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (error, authData) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
 
-        const {
-            EMPRESAS,
-            DESCRIPCION,
-            DIRECCION,
-            RUC,
-            FUENTE,
-            
-        } = req.body;
-
-        conn.query('CALL sp_InsertEmp(?, ?, ?, ?, ?)', [
-            EMPRESAS,
-            DESCRIPCION,
-            DIRECCION,
-            RUC,
-            FUENTE
-            
-            
-        ], (err, results) => {
+        req.getConnection((err, conn) => {
             if (err) return res.status(500).send(err);
 
-            res.send('comprobante Registrado!');
-        });
-    });
-});
-
-routes.delete('/eliminarEmpresa', (req, res)=>{
-    req.getConnection((err, conn)=>{
-        if(err) return res.send(err)
-            const id=req.query.id;
-
-        conn.query('CALL sp_ElimEmpr(?)', [id], (err, rows)=>{
-            if(err) return res.send(err)
-
-            res.send('Comprobante Eliminado!')
-        })
-    })
-})
- 
-routes.put('/actualizar', (req, res)=>{
-    req.getConnection((err, conn)=>{
-        if(err) return res.send(err)
-            const id=req.query.id;
             const {
                 EMPRESAS,
                 DESCRIPCION,
@@ -98,31 +89,95 @@ routes.put('/actualizar', (req, res)=>{
                 RUC,
                 FUENTE,
             } = req.body;
-        conn.query('CALL sp_ActaEmp(?,?,?,?,?,?)', [
+
+            conn.query('CALL sp_InsertEmp(?, ?, ?, ?, ?)', [
+                EMPRESAS,
+                DESCRIPCION,
+                DIRECCION,
+                RUC,
+                FUENTE
+            ], (err, results) => {
+                if (err) return res.status(500).send(err);
+
+                res.send('Comprobante Registrado!');
+            });
+        });
+    });
+});
+
+
+routes.delete('/eliminarEmpresa', verefi, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (error, authData) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
+
+        req.getConnection((err, conn) => {
+            if (err) return res.send(err);
+
+            const id = req.query.id;
+
+            conn.query('CALL sp_ElimEmpr(?)', [id], (err, rows) => {
+                if (err) return res.send(err);
+
+                res.send('Comprobante Eliminado!');
+            });
+        });
+    });
+});
+
+// Ruta para actualizar una empresa
+routes.put('/actualizar', verefi, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (error, authData) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
+
+        req.getConnection((err, conn) => {
+            if (err) return res.send(err);
+
+            const id = req.query.id;
+            const {
+                EMPRESAS,
+                DESCRIPCION,
+                DIRECCION,
+                RUC,
+                FUENTE,
+            } = req.body;
+
+            conn.query('CALL sp_ActaEmp(?,?,?,?,?,?)', [
                 id,
                 EMPRESAS,
                 DESCRIPCION,
                 DIRECCION,
                 RUC,
                 FUENTE
-            ], (err, rows)=>{
-            if(err) return res.send(err)
+            ], (err, rows) => {
+                if (err) return res.send(err);
 
-            res.send('comprobante Actualizado')
-        })
-    })
-})
+                res.send('Comprobante Actualizado!');
+            });
+        });
+    });
+});
 
-routes.get('/BuscarEmp', (req, res) => {
-    req.getConnection((err, conn) => {
-        if (err) return res.status(500).send(err);
-        const id=req.query.id;
-        conn.query('CALL sp_BuscarEmpr(?)', [id], (err,results) => {
+// Ruta para buscar una empresa
+routes.get('/BuscarEmp', verefi, (req, res) => {
+    jwt.verify(req.token, 'secretkey', (error, authData) => {
+        if (error) {
+            return res.sendStatus(403);
+        }
+
+        req.getConnection((err, conn) => {
             if (err) return res.status(500).send(err);
 
-            res.json(results[0]);
-        })
-    })
-})
+            const id = req.query.id;
+            conn.query('CALL sp_BuscarEmpr(?)', [id], (err, results) => {
+                if (err) return res.status(500).send(err);
 
+                res.json(results[0]);
+            });
+        });
+    });
+});
 module.exports = routes

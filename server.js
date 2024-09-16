@@ -5,10 +5,10 @@ const cors = require('cors'); // Importa el paquete cors
 const routes = require('./routes');
 const app = express();
 
-app.set('port', 3306|| 9000);
+app.set('port', 9000);
 
 const dbOptions = {
-    host: plocalhost,
+    host: 'localhost',
     port: 3306,
     user: 'root',
     password: '',
