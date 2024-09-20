@@ -77,5 +77,31 @@ Obtener.get('/TipoEmpleado', (req, res) => {
     });
     
 });
+Obtener.get('/Empleado', (req, res) => {
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send(err);
+    
+        conn.query('SELECT * FROM empleados', (err, results) => {
+            if (err) return res.status(500).send(err);
+    
+            res.json(results);
+        });
+    });
+    
+});
+Obtener.get('/Practicantes', (req, res) => {
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send(err);
+    
+        conn.query('SELECT * FROM practicantes', (err, results) => {
+            if (err) return res.status(500).send(err);
+    
+            res.json(results);
+        });
+    });
+    
+});
 
 module.exports = Obtener
