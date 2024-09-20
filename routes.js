@@ -1,47 +1,79 @@
 const express = require('express')
-const jwt=require("jsonwebtoken")
 const routes = express.Router()
 
-
-routes.post("/login",(req, res)=>{
-    const user={
-        id:1,
-        nombre:"admin",
-        email:"admin@gmail.com"
-    }
-    jwt.sign({user:user},'secretkey',(err,token)=>{
-        res.json({
-            token
-        })
-    })
-})
 //Authorization: Bearer <token>
-function verefi(req,res,next){
-   const veris= req.headers['authorization']
-    if(typeof veris !=='undefined') {
-       const veri= veris.split(" ")[1]
-       req.token=veri
-       next()
-    }else{
-        res.sendStatus(403)
-    }
-}
-routes.get('/Obtener_todos_los_datos', verefi, (req, res) => {
-    jwt.verify(req.token, 'secretkey', (error, authData) => {
-        if (error) {
-            return res.sendStatus(403);
-        }
+
+routes.post('/insertarPracticante', (req, res) => {
         req.getConnection((err, conn) => {
             if (err) return res.status(500).send(err);
+            const {
+                idcarrera,
+                idinstitucioneducativa,
+                idarea,
+                idfacultad,
+                idtipoempleado,
+                codigoestudiante,
+                ciclo,
+                fechainicio,
+                fechafin
+            } = req.body;
 
-            conn.query('CALL sp_ListarEmpresa()', (err, results) => {
+            conn.query('CALL sp_ins_practicante(?, ?, ?, ?, ?,?,?,?,?)', [
+                idcarrera,
+                idinstitucioneducativa,
+                idarea,
+                idfacultad,
+                idtipoempleado,
+                codigoestudiante,
+                ciclo,
+                fechainicio,
+                fechafin
+            ], (err, results) => {
                 if (err) return res.status(500).send(err);
 
-                res.json(results[0]);
-            });
+                res.send('Practicante Registrado!');
         });
-    });
+     });
 });
+
+routes.post('/insertarEmpleado', (req, res) => {
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).send(err);
+        const {
+            idempleado,
+            idcargo,
+            apellidos,
+            nombres,
+            fechanacimiento,
+            correo,
+            dni,
+            telefono,
+            distrito,
+            direccion,
+            idpracticante
+        } = req.body;
+        conn.query('CALL sp_ins_empleado(?, ?, ?, ?, ?,?,?,?,?,?,?)', [
+            idempleado,
+            idcargo,
+            apellidos,
+            nombres,
+            fechanacimiento,
+            correo,
+            dni,
+            telefono,
+            distrito,
+            direccion,
+            idpracticante
+        ], (err, results) => {
+            if (err) return res.status(500).send(err);
+
+            res.send('Empleado Registrado!');
+    });
+ });
+});
+
+
+
 /* 
 routes.get('/GetCom', (req, res) => {
     req.getConnection((err, conn) => {
@@ -71,7 +103,7 @@ routes.get('/FiltrarPorRuc', (req, res) => {
         });
     });
 });
-*/
+
 
 routes.post('/insertarEmpr', verefi, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData) => {
@@ -180,4 +212,5 @@ routes.get('/BuscarEmp', verefi, (req, res) => {
         });
     });
 });
+*/
 module.exports = routes

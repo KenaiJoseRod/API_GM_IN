@@ -16,6 +16,7 @@
     "express": "^4.20.0",
     "express-myconnection": "^1.0.4",
     "jsonwebtoken": "^9.0.2",
+    "mssql": "^11.0.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.11.2"
   },
